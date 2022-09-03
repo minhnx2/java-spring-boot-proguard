@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.3</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>demo-proguard</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>demo-proguard</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>		
+		<proguard.version>7.1.1</proguard.version>
+		<proguard.maven.plugin.version>2.3.1</proguard.maven.plugin.version>
+	</properties>
+	<dependencies>		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+			<finalName>${project.artifactId}</finalName>
+			<plugins>
+					<plugin>
+							<groupId>com.github.wvengen</groupId>
+							<artifactId>proguard-maven-plugin</artifactId>
+							<version>${proguard.maven.plugin.version}</version>
+							<executions>
+									<execution>
+											<phase>package</phase>
+											<goals>
+													<goal>proguard</goal>
+											</goals>
+									</execution>
+							</executions>
+							<configuration>
+									<proguardVersion>${proguard.version}</proguardVersion>
+									<injar>${project.build.finalName}.jar</injar>
+									<outjar>${project.build.finalName}.jar</outjar>
+									<obfuscate>true</obfuscate>
+									<options>
+											<option>-dontshrink</option>
+											<option>-dontoptimize</option>
+											<!-- This option will replace all strings in reflections method invocations with new class names.
+														For example, invokes Class.forName('className')-->
+											<option>-adaptclassstrings</option>
+											<!-- This option will save all original annotations and etc. Otherwise all we be removed from files.-->
+											<option>-keepattributes
+													Exceptions,
+													InnerClasses,
+													Signature,
+													Deprecated,
+													SourceFile,
+													LineNumberTable,
+													*Annotation*,
+													EnclosingMethod
+											</option>
+											<!-- This option will save all original names in interfaces (without obfuscate).-->
+											<option>-keepnames interface **</option>
+											<!-- This option will save all original methods parameters in files defined in -keep sections,
+														otherwise all parameter names will be obfuscate.-->
+											<option>-keepparameternames</option>
+											<!-- This option will save all original class files (without obfuscate) but obfuscate all
+														in domain and service packages.-->
+											<option>-keep
+													class com.example.demo.DemoProguardApplication {
+															public static void main(java.lang.String[]);
+													}
+											</option>
+											<!-- This option ignore warnings such as duplicate class definitions and classes in incorrectly
+													named files-->
+											<option>-ignorewarnings</option>
+											<!-- This option will save all original class files (without obfuscate) in service package-->
+											<!-- <option>-keep class com.slm.proguard.example.spring.boot.service { *; }</option>-->
+											<!-- This option will save all original interfaces files (without obfuscate) in all packages.-->
+											<option>-keep interface * extends * { *; }</option>
+											<!-- This option will save all original defined annotations in all classes in all packages.-->
+											<option>-keep class com.slm.proguard.example.spring.boot.config.BeanConfig</option>
+											<option>-keep class com.fasterxml.jackson.** { *; }</option>
+											<option>-keep class org.json.JSONObject.** {** put(java.lang.String,java.util.Map);}</option>
+											<option>-keepclassmembers class * {
+															@org.springframework.context.annotation.Bean *;
+															@org.springframework.beans.factory.annotation.Autowired *;
+															@org.springframework.beans.factory.annotation.Value *;
+													}
+											</option>
+											<option>-dontwarn com.fasterxml.jackson.databind.**</option>
+											<option>-dontwarn com.fasterxml.jackson.**</option>
+									</options>
+									<injarNotExistsSkip>true</injarNotExistsSkip>
+									<libs>
+											<!--Put here your libraries if required-->
+											<!--<lib>${java.home}/lib/rt.jar</lib>-->
+									</libs>
+							</configuration>
+							<dependencies>
+									<dependency>
+											<groupId>com.guardsquare</groupId>
+											<artifactId>proguard-base</artifactId>
+											<version>${proguard.version}</version>
+									</dependency>
+									<dependency>
+										<groupId>com.guardsquare</groupId>
+										<artifactId>proguard-core</artifactId>
+										<version>7.1.1</version>
+										<scope>runtime</scope>
+										<optional>true</optional>
+									</dependency>
+							</dependencies>
+					</plugin>
+
+					<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-compiler-plugin</artifactId>
+							<version>${maven.compiler.plugin.version}</version>
+							<configuration>
+									<source>${java.version}</source>
+									<target>${java.version}</target>
+							</configuration>
+					</plugin>
+
+					<!-- Maven assembly must be run after proguard obfuscation so it take already obfuscated files.-->
+					<plugin>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<executions>
+									<execution>
+											<goals>
+													<goal>repackage</goal>
+											</goals>
+											<configuration>
+													<mainClass>com.slm.proguard.example.spring.boot.Application</mainClass>
+											</configuration>
+									</execution>
+							</executions>
+					</plugin>
+			</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>java8-</id>
+			<activation>
+				<jdk>(,1.8]</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.wvengen</groupId>
+						<artifactId>proguard-maven-plugin</artifactId>
+						<configuration>
+							<libs>
+								<lib>${java.home}/lib/rt.jar</lib>
+								<lib>${java.home}/lib/jce.jar</lib>
+								<lib>${java.home}/lib/jsse.jar</lib>
+							</libs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>java9+</id>
+			<activation>
+				<jdk>[1.9,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.wvengen</groupId>
+						<artifactId>proguard-maven-plugin</artifactId>
+						<configuration>
+							<libs>
+								<lib>${java.home}/jmods/java.base.jmod</lib>
+							</libs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
